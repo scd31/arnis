@@ -62,6 +62,13 @@ pub struct Args {
     /// Spawn point coordinates (lat, lng)
     #[arg(skip)]
     pub spawn_point: Option<(f64, f64)>,
+
+    /// Size of area to process at a time
+    /// Used to reduce RAM usage
+    /// Given in chunks, size is chunks^2
+    /// E.g. setting 4 will process 16 chunks at a time
+    #[arg(long)]
+    pub batch_area_size: Option<u16>,
 }
 
 fn validate_minecraft_world_path(path: &str) -> Result<String, String> {

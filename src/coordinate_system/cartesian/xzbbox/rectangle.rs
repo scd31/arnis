@@ -66,6 +66,30 @@ impl XZBBoxRect {
             && xzpoint.z >= self.min.z
             && xzpoint.z <= self.max.z
     }
+
+    // TODO unit tests
+    // when dx or dz is divisible by blocks and when they aren't
+    pub fn batch(&self, blocks: u32) -> Vec<Self> {
+        let iblocks: i32 = blocks.try_into().unwrap();
+        let ublocks: usize = blocks.try_into().unwrap();
+
+        let mut out = vec![];
+
+        for x in (self.min.x..self.max.x).step_by(ublocks) {
+            let x2 = (x + iblocks).min(self.max.x);
+
+            for z in (self.min.z..self.max.z).step_by(ublocks) {
+                let z2 = (z + iblocks).min(self.max.z);
+
+                out.push(
+                    Self::new(XZPoint::new(x, z), XZPoint::new(x2, z2))
+                        .expect("Error while batching rect"),
+                );
+            }
+        }
+
+        out
+    }
 }
 
 impl fmt::Display for XZBBoxRect {

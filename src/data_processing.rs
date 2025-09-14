@@ -17,6 +17,21 @@ pub fn generate_world(
     ground: Ground,
     args: &Args,
 ) -> Result<(), String> {
+    let Some(batch_size) = args.batch_area_size else {
+        return generate_world_batch(elements, xzbbox, ground, args);
+    };
+
+    // todo
+
+    Ok(())
+}
+
+fn generate_world_batch(
+    elements: Vec<ProcessedElement>,
+    xzbbox: XZBBox,
+    ground: Ground,
+    args: &Args,
+) -> Result<(), String> {
     let region_dir: String = format!("{}/region", args.path);
     let mut editor: WorldEditor = WorldEditor::new(&region_dir, &xzbbox);
 

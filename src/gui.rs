@@ -765,6 +765,7 @@ fn gui_start_generation(
                 debug: false,
                 timeout: Some(std::time::Duration::from_secs(floodfill_timeout)),
                 spawn_point,
+                batch_area_size: None, // todo
             };
 
             // Run data fetch and world generation
