@@ -64,6 +64,14 @@ impl XZBBox {
         }
     }
 
+    /// Create a bunch of chunk-aligned XZboxes,
+    /// that overall covers the same area as us, with no overlap
+    pub fn batch(&self, chunks: u32) -> Vec<XZBBox> {
+        match self {
+            XZBBox::Rect(r) => r.batch(chunks).into_iter().map(Self::Rect).collect(),
+        }
+    }
+
     /// Return the min x in all covered blocks
     pub fn min_x(&self) -> i32 {
         self.bounding_rect().min().x

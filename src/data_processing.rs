@@ -18,18 +18,24 @@ pub fn generate_world(
     args: &Args,
 ) -> Result<(), String> {
     let Some(batch_size) = args.batch_area_size else {
-        return generate_world_batch(elements, xzbbox, ground, args);
+        return generate_world_batch(&elements, xzbbox, &ground, args);
     };
 
-    // todo
+    for batch in xzbbox.batch(batch_size) {
+        if args.debug {
+            println!("Processing batch {batch}");
+        }
+
+        generate_world_batch(&elements, batch, &ground, args)?;
+    }
 
     Ok(())
 }
 
 fn generate_world_batch(
-    elements: Vec<ProcessedElement>,
+    elements: &[ProcessedElement],
     xzbbox: XZBBox,
-    ground: Ground,
+    ground: &Ground,
     args: &Args,
 ) -> Result<(), String> {
     let region_dir: String = format!("{}/region", args.path);
@@ -38,7 +44,7 @@ fn generate_world_batch(
     println!("{} Processing data...", "[4/7]".bold());
 
     // Set ground reference in the editor to enable elevation-aware block placement
-    editor.set_ground(&ground);
+    editor.set_ground(ground);
 
     println!("{} Processing terrain...", "[5/7]".bold());
     emit_gui_progress_update(25.0, "Processing terrain...");
@@ -55,7 +61,7 @@ fn generate_world_batch(
     let mut current_progress_prcs: f64 = 25.0;
     let mut last_emitted_progress: f64 = current_progress_prcs;
 
-    for element in &elements {
+    for element in elements {
         process_pb.inc(1);
         current_progress_prcs += progress_increment_prcs;
         if (current_progress_prcs - last_emitted_progress).abs() > 0.25 {
@@ -251,7 +257,7 @@ fn generate_world_batch(
             Some(*spawn_coords),
             bbox_string,
             args.scale,
-            &ground,
+            ground,
         ) {
             eprintln!("Warning: Failed to update spawn point Y coordinate: {e}");
         }

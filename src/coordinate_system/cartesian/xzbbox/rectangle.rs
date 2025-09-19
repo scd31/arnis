@@ -69,20 +69,26 @@ impl XZBBoxRect {
 
     // TODO unit tests
     // when dx or dz is divisible by blocks and when they aren't
-    pub fn batch(&self, blocks: u32) -> Vec<Self> {
-        let iblocks: i32 = blocks.try_into().unwrap();
-        let ublocks: usize = blocks.try_into().unwrap();
+    pub fn batch(&self, chunks: u32) -> Vec<Self> {
+        // chunk-aline our bounds
+        let lower_x = (self.min.x / 16) * 16;
+        let lower_z = (self.min.z / 16) * 16;
+
+        let iblocks: i32 = (chunks * 16).try_into().unwrap();
+        let ublocks: usize = (chunks * 16).try_into().unwrap();
 
         let mut out = vec![];
 
-        for x in (self.min.x..self.max.x).step_by(ublocks) {
+        for x in (lower_x..self.max.x).step_by(ublocks) {
+            let x1 = x.max(self.min.x);
             let x2 = (x + iblocks).min(self.max.x);
 
-            for z in (self.min.z..self.max.z).step_by(ublocks) {
+            for z in (lower_z..self.max.z).step_by(ublocks) {
+                let z1 = z.max(self.min.z);
                 let z2 = (z + iblocks).min(self.max.z);
 
                 out.push(
-                    Self::new(XZPoint::new(x, z), XZPoint::new(x2, z2))
+                    Self::new(XZPoint::new(x1, z1), XZPoint::new(x2, z2))
                         .expect("Error while batching rect"),
                 );
             }
