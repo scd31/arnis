@@ -1,5 +1,5 @@
 use crate::coordinate_system::cartesian::{XZBBox, XZPoint};
-use crate::coordinate_system::geographic::{LLBBox, LLPoint};
+use crate::coordinate_system::geographic::LLPoint;
 use crate::coordinate_system::transformation::CoordTransformer;
 use crate::progress::emit_gui_progress_update;
 use colored::Colorize;
@@ -164,22 +164,16 @@ impl ProcessedElement {
 
 pub fn parse_osm_data(
     json_data: Value,
-    bbox: LLBBox,
-    scale: f64,
+    xzbbox: XZBBox,
+    coord_transformer: &CoordTransformer,
     debug: bool,
 ) -> (Vec<ProcessedElement>, XZBBox) {
     println!("{} Parsing data...", "[2/7]".bold());
-    println!("Bounding box: {bbox:?}");
+    println!("Bounding box: {xzbbox:?}");
     emit_gui_progress_update(5.0, "Parsing data...");
 
     // Deserialize the JSON data into the OSMData structure
     let data = parse_raw_osm_data(json_data).expect("Failed to parse OSM data");
-
-    let (coord_transformer, xzbbox) = CoordTransformer::llbbox_to_xzbbox(&bbox, scale)
-        .unwrap_or_else(|e| {
-            eprintln!("Error in defining coordinate transformation:\n{e}");
-            panic!();
-        });
 
     if debug {
         println!("Total elements: {}", data.total_count());

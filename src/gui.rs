@@ -1,10 +1,8 @@
 use crate::args::Args;
 use crate::coordinate_system::cartesian::XZPoint;
 use crate::coordinate_system::geographic::{LLBBox, LLPoint};
-use crate::data_processing;
-use crate::ground::{self, Ground};
-use crate::map_transformation;
-use crate::osm_parser;
+use crate::execute::execute_generator;
+use crate::ground::Ground;
 use crate::progress;
 use crate::retrieve_data;
 use crate::version_check;
@@ -768,44 +766,9 @@ fn gui_start_generation(
                 batch_area_size: None, // todo
             };
 
-            // Run data fetch and world generation
-            match retrieve_data::fetch_data_from_overpass(args.bbox, args.debug, "requests", None) {
-                Ok(raw_data) => {
-                    let (mut parsed_elements, mut xzbbox) =
-                        osm_parser::parse_osm_data(raw_data, args.bbox, args.scale, args.debug);
-                    parsed_elements.sort_by(|el1, el2| {
-                        let (el1_priority, el2_priority) =
-                            (osm_parser::get_priority(el1), osm_parser::get_priority(el2));
-                        match (
-                            el1.tags().contains_key("landuse"),
-                            el2.tags().contains_key("landuse"),
-                        ) {
-                            (true, false) => std::cmp::Ordering::Greater,
-                            (false, true) => std::cmp::Ordering::Less,
-                            _ => el1_priority.cmp(&el2_priority),
-                        }
-                    });
+            execute_generator(args);
 
-                    let mut ground = ground::generate_ground_data(&args);
-
-                    // Transform map (parsed_elements). Operations are defined in a json file
-                    map_transformation::transform_map(
-                        &mut parsed_elements,
-                        &mut xzbbox,
-                        &mut ground,
-                    );
-
-                    let _ = data_processing::generate_world(parsed_elements, xzbbox, ground, &args);
-                    // Session lock will be automatically released when _session_lock goes out of scope
-                    Ok(())
-                }
-                Err(e) => {
-                    let error_msg = format!("Failed to fetch data: {e}");
-                    emit_gui_error(&error_msg);
-                    // Session lock will be automatically released when _session_lock goes out of scope
-                    Err(error_msg)
-                }
-            }
+            Ok(())
         })
         .await
         {

@@ -12,27 +12,6 @@ use indicatif::{ProgressBar, ProgressStyle};
 pub const MIN_Y: i32 = -64;
 
 pub fn generate_world(
-    elements: Vec<ProcessedElement>,
-    xzbbox: XZBBox,
-    ground: Ground,
-    args: &Args,
-) -> Result<(), String> {
-    let Some(batch_size) = args.batch_area_size else {
-        return generate_world_batch(&elements, xzbbox, &ground, args);
-    };
-
-    for batch in xzbbox.batch(batch_size) {
-        if args.debug {
-            println!("Processing batch {batch}");
-        }
-
-        generate_world_batch(&elements, batch, &ground, args)?;
-    }
-
-    Ok(())
-}
-
-fn generate_world_batch(
     elements: &[ProcessedElement],
     xzbbox: XZBBox,
     ground: &Ground,
